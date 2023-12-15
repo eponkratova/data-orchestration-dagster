@@ -4,9 +4,9 @@
 #import libraries
 import pandas as pd
 import requests
-import duckdb
 from pandas.io.json import json_normalize
-import logging
+from dagster_duckdb import DuckDBResource
+from dagster import Definitions
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
 
 
@@ -15,24 +15,15 @@ BASE_URL = "http://api.weatherapi.com/v1/current.json"
 API_KEY = "212a0353103949f68ff83745231112"
 q = "London"
 
-#creating a database connection and table
-conn = duckdb.connect('weather_db.duckdb')
-sql = '''CREATE OR REPLACE TABLE curr_weather (name string, 
-                                    region string, 
-                                    lat string, 
-                                    lon string, 
-                                    precip_in numeric,
-                                    humidity numeric, 
-                                    cloud numeric, 
-                                    feelslike_c numeric, 
-                                    feelslike_f numeric,
-                                    vis_km numeric, 
-                                    vis_miles numeric, 
-                                    uv numeric, 
-                                    gust_mph numeric, 
-                                    gust_kph numeric)'''
-        
-conn.execute(sql)
+defs = Definitions(
+    assets=[save_data_to_db],
+    resources={
+        "duckdb": DuckDBResource(
+            database="weather_db.duckdb",  
+        )
+    },
+)
+
 
 @asset(group_name="weatherapi", compute_kind="Weather API")
 def call_api(BASE_URL, API_KEY, q):
@@ -50,15 +41,26 @@ def call_api(BASE_URL, API_KEY, q):
     return objects
 
 @asset(deps=[call_api], group_name="weatherapi", compute_kind="Database")
-def save_data_to_db():
+def save_data_to_db(duckdb: DuckDBResource) -> None:
     """The function saves the output file as a duckdb"""
     df = call_api(BASE_URL, API_KEY, q)
-    try:
+    #creating a database connection and table
+    sql = '''CREATE OR REPLACE TABLE curr_weather (name string, 
+                                        region string, 
+                                        lat string, 
+                                        lon string, 
+                                        precip_in numeric,
+                                        humidity numeric, 
+                                        cloud numeric, 
+                                        feelslike_c numeric, 
+                                        feelslike_f numeric,
+                                        vis_km numeric, 
+                                        vis_miles numeric, 
+                                        uv numeric, 
+                                        gust_mph numeric, 
+                                        gust_kph numeric)'''
+
+    with duckdb.get_connection() as conn:
+        conn.execute(sql)
         conn.execute("INSERT INTO curr_weather SELECT * FROM df")
-    except Exception as e:
-        print(f'Failed to save data to duckdb: {e}')
-
-
-#testing the output
-#conn.execute("SELECT * from curr_weather ").fetchdf()
-
+        print("Done")
