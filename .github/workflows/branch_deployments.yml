@@ -46,7 +46,7 @@ jobs:
         with:
           dagster_cloud_file: "$GITHUB_WORKSPACE/project-repo/$DAGSTER_CLOUD_FILE"
           build_output_dir: "$GITHUB_WORKSPACE/build"
-          python_version: "${{ env.PYTHON_VERSION }}"
+          python_version: "3.11"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -69,10 +69,13 @@ jobs:
         with:
           dagster_cloud_api_token: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
           location: ${{ toJson(matrix.location) }}
-          base_image: "python:${{ env.PYTHON_VERSION }}-slim"
+          base_image: "python:3.11"
           # Uncomment to pass through Github Action secrets as a JSON string of key-value pairs
           # env_vars: ${{ toJson(secrets) }}
           organization_id: ${{ secrets.ORGANIZATION_ID }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dagster-duckdb dagster-duckdb-pandas
