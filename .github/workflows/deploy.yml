@@ -80,4 +80,4 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install dagster-duckdb dagster-duckdb-pandas
+          pip install dagster-duckdb~=0.20 dagster-duckdb-pandas~=0.20
