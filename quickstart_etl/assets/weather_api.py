@@ -4,7 +4,7 @@
 #import libraries
 import pandas as pd
 import requests
-from pandas import json_normalize
+ffrom pandas import json_normalize
 from dagster_duckdb import DuckDBResource
 from dagster import Definitions
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
@@ -14,15 +14,6 @@ from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, ass
 BASE_URL = "http://api.weatherapi.com/v1/current.json"
 API_KEY = "212a0353103949f68ff83745231112"
 q = "London"
-
-defs = Definitions(
-    assets=[save_data_to_db],
-    resources={
-        "duckdb": DuckDBResource(
-            database="weather_db.duckdb",  
-        )
-    },
-)
 
 
 @asset(group_name="weatherapi", compute_kind="Weather API")
@@ -64,3 +55,13 @@ def save_data_to_db(duckdb: DuckDBResource) -> None:
         conn.execute(sql)
         conn.execute("INSERT INTO curr_weather SELECT * FROM df")
         print("Done")
+
+
+defs = Definitions(
+    assets=[save_data_to_db],
+    resources={
+        "duckdb": DuckDBResource(
+            database="weather_db.duckdb",  
+        )
+    },
+)
