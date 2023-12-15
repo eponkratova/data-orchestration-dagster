@@ -4,7 +4,7 @@
 #import libraries
 import pandas as pd
 import requests
-ffrom pandas import json_normalize
+from pandas import json_normalize
 from dagster_duckdb import DuckDBResource
 from dagster import Definitions
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
