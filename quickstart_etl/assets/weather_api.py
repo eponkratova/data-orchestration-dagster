@@ -5,7 +5,7 @@
 import pandas as pd
 import requests
 from pandas import json_normalize
-from dagster_duckdb_pandas import DuckDBPandasIOManager
+#from dagster_duckdb_pandas import DuckDBPandasIOManager
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset, Definitions
 
 
@@ -65,7 +65,7 @@ def save_data_to_db(duckdb: DuckDBResource) -> None:
     },
 ) """
 
-defs = Definitions(
+""" defs = Definitions(
     assets=[call_api],
     resources={"io_manager": DuckDBPandasIOManager(database="weather_db.duckdb")}
-)
+)""" 
