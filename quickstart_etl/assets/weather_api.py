@@ -9,15 +9,13 @@ from pandas import json_normalize
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset, Definitions
 
 
-#passing weather API params
-BASE_URL = "http://api.weatherapi.com/v1/current.json"
-API_KEY = "212a0353103949f68ff83745231112"
-q = "London"
-
-
 @asset(group_name="weatherapi", compute_kind="Weather API")
-def call_api(BASE_URL, API_KEY, q):
+def call_api():
     """The functions calls a weather API to extract the current forecast"""
+    #passing weather API params
+    BASE_URL = "http://api.weatherapi.com/v1/current.json"
+    API_KEY = "212a0353103949f68ff83745231112"
+    q = "London"
     resp = requests.get(f"{BASE_URL}?key={API_KEY}&q={q}")
     json_response = resp.json()       
     objects = json_normalize(json_response)
