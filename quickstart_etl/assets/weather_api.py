@@ -5,9 +5,8 @@
 import pandas as pd
 import requests
 from pandas import json_normalize
-#from dagster_duckdb_pandas import DuckDBPandasIOManager
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset, Definitions
-
+from dagster_duckdb_polars import DuckDBPolarsIOManager
 
 @asset(group_name="weatherapi", compute_kind="Weather API")
 def call_api():
@@ -28,10 +27,9 @@ def call_api():
                        "vis_km", "vis_miles", "uv", "gust_mph", "gust_kph" ]
     return objects
 
-"""  @asset(deps=[call_api], group_name="weatherapi", compute_kind="Database")
+@asset(deps=[call_api], group_name="weatherapi", compute_kind="Database")
 def save_data_to_db(duckdb: DuckDBResource) -> None:
     '''The function saves the output file as a duckdb'''
-    df = call_api(BASE_URL, API_KEY, q)
     #creating a database connection and table
     sql = '''CREATE OR REPLACE TABLE curr_weather (name string, 
                                         region string, 
@@ -52,18 +50,8 @@ def save_data_to_db(duckdb: DuckDBResource) -> None:
         conn.execute(sql)
         conn.execute("INSERT INTO curr_weather SELECT * FROM df")
         print("Done")
-  """
 
-""" defs = Definitions(
+defs = Definitions(
     assets=[save_data_to_db],
-    resources={
-        "duckdb": DuckDBResource(
-            database="weather_db.duckdb",  
-        )
-    },
-) """
-
-""" defs = Definitions(
-    assets=[call_api],
-    resources={"io_manager": DuckDBPandasIOManager(database="weather_db.duckdb")}
-)""" 
+    resources={"io_manager": DuckDBPolarsIOManager(database="weather_db.duckdb")}
+)
