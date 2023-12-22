@@ -1,4 +1,4 @@
 locations:
-- code_source:
-    package_name: quickstart_etl
-  location_name: data-orchestration-dagster
+  - location_name: quickstart_etl
+    code_source:
+      package_name: quickstart_etl

@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 from pandas import json_normalize
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset, Definitions
-from dagster_duckdb_polars import DuckDBPolarsIOManager
+import duckdb
 
 @asset(group_name="weatherapi", compute_kind="Weather API")
 def call_api():
@@ -25,33 +25,17 @@ def call_api():
     #renaming column names
     objects.columns = ["name", "region", "lat", "lon", "precip_in", "humidity", "cloud", "feelslike_c", "feelslike_f",
                        "vis_km", "vis_miles", "uv", "gust_mph", "gust_kph" ]
-    return objects
+    objects.to_csv('weather.csv')
 
 @asset(deps=[call_api], group_name="weatherapi", compute_kind="Database")
-def save_data_to_db(duckdb: DuckDBResource) -> None:
+def save_data_to_db():
     '''The function saves the output file as a duckdb'''
     #creating a database connection and table
-    sql = '''CREATE OR REPLACE TABLE curr_weather (name string, 
-                                        region string, 
-                                        lat string, 
-                                        lon string, 
-                                        precip_in numeric,
-                                        humidity numeric, 
-                                        cloud numeric, 
-                                        feelslike_c numeric, 
-                                        feelslike_f numeric,
-                                        vis_km numeric, 
-                                        vis_miles numeric, 
-                                        uv numeric, 
-                                        gust_mph numeric, 
-                                        gust_kph numeric)'''
-
-    with duckdb.get_connection() as conn:
-        conn.execute(sql)
-        conn.execute("INSERT INTO curr_weather SELECT * FROM df")
-        print("Done")
-
-defs = Definitions(
-    assets=[save_data_to_db],
-    resources={"io_manager": DuckDBPolarsIOManager(database="weather_db.duckdb")}
-)
+    conn = duckdb.connect('C:/Users/katep/OneDrive/Documents/data-orchestration/data-orchestration/assets/weather_db2.duckdb')
+    sql = """
+    CREATE OR REPLACE TABLE curr_weather as (
+						select name, region, lat, lon, precip_in, humidity, cloud, feelslike_c, feelslike_f, vis_km, vis_miles, uv, gust_mph, gust_kph  
+                         from 'C:/Users/katep/OneDrive/Documents/data-orchestration/data-orchestration-/dagster/data-orchestration-dagster/weatherapi/weather.csv'
+    				);
+		"""
+    conn.execute(sql)
